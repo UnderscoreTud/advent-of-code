@@ -20,12 +20,35 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         int[] years, days;
+        int warmupIterations;
 
         if (args.length >= 1) years = Main.parseYears(args[0]);
         else years = ask("What year(s) do you want to execute? (E.g. all,current,2022)", Main::parseYears);
 
         if (args.length >= 2) days = Main.parseDays(args[1]);
         else days = ask("What day(s) do you want to execute? (E.g. all,current,3)", Main::parseDays);
+        
+        if (args.length >= 3) {
+            try {
+                warmupIterations = Integer.parseInt(args[2]);
+            } catch (NumberFormatException e) {
+                System.err.println("Couldn't parse number for warmup iterations: " + args[2]);
+                System.err.println("Defaulting to 0");
+                warmupIterations = 0;
+            }
+        } else {
+            warmupIterations = ask("How many warmup iterations do you want to run before measuring the performance? (0 for none)", answer -> {
+                try {
+                    return Integer.parseInt(answer);
+                } catch (NumberFormatException e) {
+                    System.err.println("Couldn't parse number for warmup iterations: " + answer);
+                    System.err.println("Defaulting to 0");
+                    return 0;
+                }
+            });
+        }
+
+        if (warmupIterations > 0) warmup(years, days, warmupIterations);
 
         System.out.println();
         System.out.println("================================");
@@ -52,6 +75,24 @@ public class Main {
         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-");
         System.out.println();
         System.out.println("Execution for the entire program: " + totalExecutionMs + "ms");
+    }
+
+    private static void warmup(int[] years, int[] days, int iterations) {
+        int iterationInterval = iterations / 10;
+        System.out.println();
+        System.out.println("====== Warming Up... =======");
+        for (int i = 0; i < iterations; i++) {
+            if (i % iterationInterval == 0)
+                System.out.println("Iteration: " + i);
+            Iterator<Solution<?, ?>> solutionIterator = getSolutionIterator(years, days);
+            while (solutionIterator.hasNext()) {
+                Solution<?, ?> solution = solutionIterator.next();
+                if (solution == null) continue;
+                solution.part1Solution();
+                solution.part2Solution();
+            }
+        }
+        System.out.println("===== Finished Warmup ======");
     }
 
     private static Iterator<Solution<?, ?>> getSolutionIterator(int[] years, int[] days) {
