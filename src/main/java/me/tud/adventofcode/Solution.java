@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
-public abstract class Solution<P1, P2> {
+public abstract class Solution {
 
     private final AdventOfCodeSolution adventOfCodeSolution;
     
@@ -43,9 +43,9 @@ public abstract class Solution<P1, P2> {
         return totalExecutionMs;
     }
 
-    public abstract P1 part1Solution();
+    public abstract Object part1Solution();
 
-    public abstract P2 part2Solution();
+    public abstract Object part2Solution();
 
     @SuppressWarnings("resource")
     protected InputStream getInputStream() {

@@ -57,9 +57,9 @@ public class Main {
         System.out.println();
 
         long totalExecutionMs = 0;
-        Iterator<Solution<?, ?>> solutionIterator = getSolutionIterator(years, days);
+        Iterator<Solution> solutionIterator = getSolutionIterator(years, days);
         while (solutionIterator.hasNext()) {
-            Solution<?, ?> solution = solutionIterator.next();
+            Solution solution = solutionIterator.next();
             if (solution == null) continue;
 
             System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-");
@@ -84,9 +84,9 @@ public class Main {
         for (int i = 0; i < iterations; i++) {
             if (i % iterationInterval == 0)
                 System.out.println("Iteration: " + i);
-            Iterator<Solution<?, ?>> solutionIterator = getSolutionIterator(years, days);
+            Iterator<Solution> solutionIterator = getSolutionIterator(years, days);
             while (solutionIterator.hasNext()) {
-                Solution<?, ?> solution = solutionIterator.next();
+                Solution solution = solutionIterator.next();
                 if (solution == null) continue;
                 solution.part1Solution();
                 solution.part2Solution();
@@ -95,7 +95,7 @@ public class Main {
         System.out.println("===== Finished Warmup ======");
     }
 
-    private static Iterator<Solution<?, ?>> getSolutionIterator(int[] years, int[] days) {
+    private static Iterator<Solution> getSolutionIterator(int[] years, int[] days) {
         return new Iterator<>() {
 
             private int yearIndex, dayIndex;
@@ -106,8 +106,8 @@ public class Main {
             }
 
             @Override
-            public Solution<?, ?> next() {
-                Solution<?, ?> solution = getSolution(years[yearIndex], days[dayIndex]);
+            public Solution next() {
+                Solution solution = getSolution(years[yearIndex], days[dayIndex]);
                 if (++dayIndex >= days.length) {
                     dayIndex = 0;
                     yearIndex++;
@@ -118,7 +118,7 @@ public class Main {
         };
     }
 
-    private static Solution<?, ?> getSolution(int year, int day) {
+    private static Solution getSolution(int year, int day) {
         try {
             Class<?> cls = Class.forName(SOLUTION_LOCATION.formatted(year, day));
             if (!Solution.class.isAssignableFrom(cls))
