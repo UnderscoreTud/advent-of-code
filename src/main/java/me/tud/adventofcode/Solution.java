@@ -20,7 +20,7 @@ public abstract class Solution<P1, P2> {
     /**
      * @return total execution time in milliseconds
      */
-    public long run() throws IOException {
+    public long run() {
         long start, executionMs, totalExecutionMs = 0;
         int day = getDay();
         start = System.currentTimeMillis();
@@ -44,23 +44,23 @@ public abstract class Solution<P1, P2> {
         return totalExecutionMs;
     }
 
-    public abstract P1 part1Solution() throws IOException;
+    public abstract P1 part1Solution();
 
-    public abstract P2 part2Solution() throws IOException;
+    public abstract P2 part2Solution();
 
-    protected InputStream getInputStream() throws IOException {
+    @SuppressWarnings("resource")
+    protected InputStream getInputStream() {
         int year = getYear(), day = getDay();
         ClassLoader classLoader = getClass().getClassLoader();
-        try (InputStream stream = classLoader.getResourceAsStream(Main.SOLUTION_INPUT_LOCATION.formatted(year, day))) {
-            return Objects.requireNonNull(stream, "Couldn't find input file for year " + year + ", day " + day);
-        }
+        InputStream stream = classLoader.getResourceAsStream(Main.SOLUTION_INPUT_LOCATION.formatted(year, day));
+        return Objects.requireNonNull(stream, "Couldn't find input file for year " + year + ", day " + day);
     }
 
-    protected Scanner getInputScanner() throws IOException {
+    protected Scanner getInputScanner() {
         return new Scanner(getInputStream());
     }
 
-    public Stream<String> lineStream() throws IOException {
+    public Stream<String> lineStream() {
         BufferedReader stream = new BufferedReader(new InputStreamReader(getInputStream()));
         return stream.lines();
     }
