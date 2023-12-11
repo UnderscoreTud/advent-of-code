@@ -1,6 +1,7 @@
 package me.tud.adventofcode;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
@@ -55,10 +56,22 @@ public abstract class Solution {
         return Objects.requireNonNull(stream, "Couldn't find input file for year " + year + ", day " + day);
     }
 
+    protected String getInput() {
+        try {
+            return new String(getInputStream().readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected Scanner getInputScanner() {
         return new Scanner(getInputStream());
     }
 
+    public String[] getInputLines() {
+        return lineStream().toArray(String[]::new);
+    }
+    
     public Stream<String> lineStream() {
         BufferedReader stream = new BufferedReader(new InputStreamReader(getInputStream()));
         return stream.lines();
