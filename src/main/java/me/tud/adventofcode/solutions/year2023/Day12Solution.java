@@ -3,127 +3,97 @@ package me.tud.adventofcode.solutions.year2023;
 import me.tud.adventofcode.AdventOfCodeSolution;
 import me.tud.adventofcode.Solution;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-@AdventOfCodeSolution(year = 2023, day = 12, name = "Cube Conundrum", link = "https://adventofcode.com/2023/day/12")
+@AdventOfCodeSolution(year = 2023, day = 12, name = "Hot Springs", link = "https://adventofcode.com/2023/day/12")
 public class Day12Solution extends Solution {
 
+    private static final Map<SpringRow, Long> cache = new HashMap<>();
+    
     @Override
-    public Integer part1Solution() {
+    public Long part1Solution() {
         return lineStream()
                 .map(this::processSprings)
-                .map(this::getAllArrangements)
-                .mapToInt(List::size)
+                .mapToLong(this::getAllArrangements)
                 .sum();
     }
 
     @Override
-    public Integer part2Solution() {
-        return null;
+    public Long part2Solution() {
+        return lineStream()
+                .map(this::processSprings)
+                .map(row -> row.unfold(5))
+                .mapToLong(this::getAllArrangements)
+                .sum();
     }
 
     private SpringRow processSprings(String line) {
         int split = line.indexOf(' ');
-        SpringStatus[] springStatuses = line.substring(0, split).chars()
-                .mapToObj(codePoint -> SpringStatus.fromChar((char) codePoint))
-                .toArray(SpringStatus[]::new);
-        int[] damagedSprings = Arrays.stream(line.substring(split + 1).split(","))
-                .mapToInt(Integer::parseInt)
-                .toArray();
-        return new SpringRow(springStatuses, damagedSprings);
+        List<Integer> damagedSprings = Arrays.stream(line.substring(split + 1).split(","))
+                .map(Integer::parseInt)
+                .toList();
+        return new SpringRow(line.substring(0, split), damagedSprings);
     }
 
-    private List<Range[]> getAllArrangements(SpringRow row) {
-        return getAllArrangements(row, 0, 0);
-    }
-    
-    private List<Range[]> getAllArrangements(SpringRow row, int startIndex, int groupIndex) {
-        List<Range[]> arrangements = new ArrayList<>();
-        int[] groups = row.damagedSprings;
-        boolean lastGroup = groups.length - groupIndex == 1;
-        int lastIndex = lastPossibleIndex(row, groupIndex);
-        for (int i = startIndex; i < lastIndex; i++) {
-            Range range = new Range(i, groups[groupIndex]);
-            if (!validateRangePlacement(row, range)) continue;
-
-            List<Range[]> subArrangements = lastGroup 
-                    ? null
-                    : getAllArrangements(row, i + range.length + 1, groupIndex + 1);
-
-            if (subArrangements == null) {
-                arrangements.add(new Range[]{range});
-                continue;
-            } else if (subArrangements.isEmpty()) continue;
-
-            for (Range[] subArrangement : subArrangements) {
-                Range[] arrangement = new Range[groups.length - groupIndex];
-                arrangement[0] = range;
-                System.arraycopy(subArrangement, 0, arrangement, 1, arrangement.length - 1);
-                if (groupIndex == 0 && !validateArrangement(row, arrangement)) continue;
-                arrangements.add(arrangement);
-            }
-        }
+    private long getAllArrangements(SpringRow row) {
+        if (cache.containsKey(row))
+            return cache.get(row);
+        long arrangements = calculateArrangements(row);
+        cache.put(row, arrangements);
         return arrangements;
     }
 
-    private int lastPossibleIndex(SpringRow row, int groupIndex) {
-        int sum = 0;
-        for (int i = groupIndex; i < row.damagedSprings.length; i++)
-            sum += row.damagedSprings[i];
-        return row.springs.length - (sum + (row.damagedSprings.length - groupIndex - 2));
-    }
+    private long calculateArrangements(SpringRow row) {
+        if (row.pattern.isEmpty()) return row.damagedSprings.isEmpty() ? 1 : 0;
 
-    private boolean validateArrangement(SpringRow row, Range[] arrangement) {
-        List<Integer> damagedSprings = new ArrayList<>(row.springs.length);
-        for (int i = 0; i < row.springs.length; i++)
-            if (row.springs[i] == SpringStatus.DAMAGED) damagedSprings.add(i);
-        for (Range range : arrangement) {
-            for (int i = range.startIndex; i < range.endIndex(); i++)
-                damagedSprings.remove((Object) i);
-        }
-        return damagedSprings.isEmpty();
-    }
-
-    private boolean validateRangePlacement(SpringRow row, Range range) {
-        SpringStatus[] springs = row.springs;
-
-        if (range.startIndex > 0 && springs[range.startIndex - 1] == SpringStatus.DAMAGED)
-            return false;
-
-        if (range.endIndex() < springs.length && springs[range.endIndex()] == SpringStatus.DAMAGED)
-            return false;
-
-        for (int i = range.startIndex; i < range.endIndex(); i++)
-            if (springs[i] == SpringStatus.OPERATIONAL) return false;
-
-        return true;
-    }
-
-    public record SpringRow(SpringStatus[] springs, int[] damagedSprings) {}
-
-    private record Range(int startIndex, int length) {
-
-        private int endIndex() {
-            return startIndex + length;
+        switch (row.pattern.charAt(0)) {
+            case '.' -> { return getAllArrangements(row.next()); }
+            case '?' -> { return getAllArrangements(row.attempt('#')) + getAllArrangements(row.attempt('.')); }
         }
 
+        if (row.damagedSprings.isEmpty())
+            return 0;
+
+        int groupSize = row.damagedSprings.get(0);
+        if (row.pattern.length() < groupSize)
+            return 0;
+
+        if (!row.pattern.chars().limit(groupSize).allMatch(c -> c == '#' || c == '?'))
+            return 0;
+
+        if (row.pattern.length() == groupSize)
+            return row.damagedSprings.size() == 1 ? 1 : 0;
+
+        return switch (row.pattern.charAt(groupSize)) {
+            case '.', '?' -> getAllArrangements(row.nextGroup());
+            default -> 0;
+        };
     }
 
-    private enum SpringStatus {
+    public record SpringRow(String pattern, List<Integer> damagedSprings) {
 
-        OPERATIONAL,
-        DAMAGED,
-        UNKNOWN;
+        public SpringRow unfold(int times) {
+            String unfoldedPattern = (pattern + '?').repeat(times);
+            unfoldedPattern = unfoldedPattern.substring(0, unfoldedPattern.length() - 1);
 
-        public static SpringStatus fromChar(char c) {
-            return switch (c) {
-                case '.' -> OPERATIONAL;
-                case '#' -> DAMAGED;
-                case '?' -> UNKNOWN;
-                default -> throw new IllegalStateException("Unexpected value: " + c);
-            };
+            List<Integer> unfoldedDamagedSprings = new ArrayList<>(damagedSprings.size() * times);
+            for (int i = 0; i < damagedSprings.size() * times; i++)
+                unfoldedDamagedSprings.add(damagedSprings.get(i % damagedSprings.size()));
+
+            return new SpringRow(unfoldedPattern, unfoldedDamagedSprings);
+        }
+
+        public SpringRow next() {
+            return new SpringRow(pattern.substring(1), damagedSprings);
+        }
+
+        public SpringRow attempt(char firstChar) {
+            return new SpringRow(firstChar + pattern.substring(1), damagedSprings);
+        }
+
+        public SpringRow nextGroup() {
+            int length = damagedSprings.get(0);
+            return new SpringRow(pattern.substring(length + 1), damagedSprings.subList(1, damagedSprings.size()));
         }
 
     }
