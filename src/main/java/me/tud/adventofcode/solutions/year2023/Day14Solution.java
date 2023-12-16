@@ -3,7 +3,9 @@ package me.tud.adventofcode.solutions.year2023;
 import me.tud.adventofcode.AdventOfCodeSolution;
 import me.tud.adventofcode.Solution;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @AdventOfCodeSolution(year = 2023, day = 14, name = "Parabolic Reflector Dish", link = "https://adventofcode.com/2023/day/14")
 public class Day14Solution extends Solution {

@@ -4,7 +4,10 @@ import me.tud.adventofcode.AdventOfCodeSolution;
 import me.tud.adventofcode.Solution;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 @AdventOfCodeSolution(year = 2023, day = 5, name = "If You Give A Seed A Fertilizer", link = "https://adventofcode.com/2023/day/5")
 public class Day5Solution extends Solution {

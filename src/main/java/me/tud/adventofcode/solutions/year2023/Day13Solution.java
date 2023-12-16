@@ -4,8 +4,6 @@ import me.tud.adventofcode.AdventOfCodeSolution;
 import me.tud.adventofcode.Solution;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @AdventOfCodeSolution(year = 2023, day = 13, name = "Point of Incidence", link = "https://adventofcode.com/2023/day/13")
 public class Day13Solution extends Solution {

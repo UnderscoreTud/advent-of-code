@@ -3,15 +3,14 @@ package me.tud.adventofcode.solutions.year2023;
 import me.tud.adventofcode.AdventOfCodeSolution;
 import me.tud.adventofcode.Solution;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @AdventOfCodeSolution(year = 2023, day = 8, name = "Haunted Wasteland", link = "https://adventofcode.com/2023/day/8")
 public class Day8Solution extends Solution {
-
-    private static final Pattern NODE_PATTERN = Pattern.compile("(.{3}) = \\((.{3}), (.{3})\\)");
     
     @Override
     public Long part1Solution() {
