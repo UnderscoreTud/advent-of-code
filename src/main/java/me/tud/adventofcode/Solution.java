@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 public abstract class Solution {
 
+    private static final double MILLIS_TO_NANOS = 1_000_000d;
     private final AdventOfCodeSolution adventOfCodeSolution;
     
     {
@@ -20,26 +21,26 @@ public abstract class Solution {
     /**
      * @return total execution time in milliseconds
      */
-    public long run() {
-        long start, executionMs, totalExecutionMs = 0;
+    public double run() {
         int day = getDay();
-        start = System.currentTimeMillis();
+        long start = System.nanoTime();
+        double executionMs, totalExecutionMs = 0;
         Object solution = part1Solution();
-        executionMs = System.currentTimeMillis() - start;
+        executionMs = (System.nanoTime() - start) / MILLIS_TO_NANOS;
         totalExecutionMs += executionMs;
         System.out.printf("\tSolution for day %s part 1: %s\n", day, solution);
-        System.out.printf("\tExecution time for day %s part 1: %sms\n", day, executionMs);
+        System.out.printf("\tExecution time for day %s part 1: %.3fms\n", day, executionMs);
         System.out.println();
 
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         solution = part2Solution();
-        executionMs = System.currentTimeMillis() - start;
+        executionMs = (System.nanoTime() - start) / MILLIS_TO_NANOS;
         totalExecutionMs += executionMs;
         System.out.printf("\tSolution for day %s part 2: %s\n", day, solution);
-        System.out.printf("\tExecution time for day %s part 2: %sms\n", day, executionMs);
+        System.out.printf("\tExecution time for day %s part 2: %.3fms\n", day, executionMs);
         System.out.println();
 
-        System.out.printf("\tExecution time for day %s: %sms\n", day, totalExecutionMs);
+        System.out.printf("\tExecution time for day %s: %.3fms\n", day, totalExecutionMs);
         System.out.println();
         return totalExecutionMs;
     }

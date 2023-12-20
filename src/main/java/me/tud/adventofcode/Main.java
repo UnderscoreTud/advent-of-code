@@ -61,7 +61,7 @@ public class Main {
         System.out.println("================================");
         System.out.println();
 
-        long totalExecutionMs = 0;
+        double totalExecutionMs = 0;
         Iterator<Solution> solutionIterator = getSolutionIterator(years, days);
         while (solutionIterator.hasNext()) {
             Solution solution = solutionIterator.next();
@@ -79,7 +79,7 @@ public class Main {
 
         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-");
         System.out.println();
-        System.out.println("Execution for the entire program: " + totalExecutionMs + "ms");
+        System.out.printf("Execution for the entire program: %.3fms\n", totalExecutionMs);
     }
 
     private static void warmup(int[] years, int[] days, int iterations) {
