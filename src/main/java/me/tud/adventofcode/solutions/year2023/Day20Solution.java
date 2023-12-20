@@ -22,9 +22,8 @@ public class Day20Solution extends Solution {
                 if (pulse.high) highPulses++;
                 else lowPulses++;
                 if (!pulse.receiver.prepare(pulse)) continue;
-                pulse.receiver.destinationModules.stream()
-                        .map(modules::get)
-                        .forEach(module -> queue.add(pulse.receiver.receive(pulse, module)));
+                for (String destination : pulse.receiver.destinationModules)
+                    queue.add(pulse.receiver.receive(pulse, modules.get(destination)));
             }
         }
         return lowPulses * highPulses;
@@ -33,19 +32,23 @@ public class Day20Solution extends Solution {
     @Override
     public Long part2Solution() {
         Map<String, Module> modules = parseModules();
-        Module rxSender = modules.values().stream()
-                .filter(module -> module.destinationModules.contains("rx"))
-                .findFirst().orElse(null);
+        Module rxSender = null;
+        for (Module module : modules.values()) {
+            if (!module.destinationModules.contains("rx")) continue;
+            rxSender = module;
+            break;
+        }
         if (rxSender == null) return -1L;
 
         Map<String, Integer> counts = new HashMap<>();
         AtomicInteger presses = new AtomicInteger();
-        long inputs = modules.values().stream()
-                .filter(ConjunctionModule.class::isInstance)
-                .map(ConjunctionModule.class::cast)
-                .filter(module -> module.destinationModules.contains(rxSender.name))
-                .peek(module -> module.onTrigger(() -> counts.putIfAbsent(module.name, presses.get())))
-                .count();
+        int inputs = 0;
+        for (Module module : modules.values()) {
+            if (!(module instanceof ConjunctionModule conjunction)) continue;
+            if (!conjunction.destinationModules.contains(rxSender.name)) continue;
+            conjunction.onTrigger(() -> counts.putIfAbsent(conjunction.name, presses.get()));
+            inputs++;
+        }
 
         Queue<Pulse> queue = new ArrayDeque<>();
         Module broadcaster = Objects.requireNonNull(modules.get("broadcaster"));
@@ -55,9 +58,8 @@ public class Day20Solution extends Solution {
             while (!queue.isEmpty()) {
                 Pulse pulse = queue.poll();
                 if (!pulse.receiver.prepare(pulse)) continue;
-                pulse.receiver.destinationModules.stream()
-                        .map(modules::get)
-                        .forEach(module -> queue.add(pulse.receiver.receive(pulse, module)));
+                for (String destination : pulse.receiver.destinationModules)
+                    queue.add(pulse.receiver.receive(pulse, modules.get(destination)));
             }
         } while (counts.size() != inputs);
         return lcm(counts.values().stream().mapToLong(Integer::longValue).toArray());
@@ -68,11 +70,12 @@ public class Day20Solution extends Solution {
         lineStream()
                 .map(this::parseModule)
                 .forEach(module -> modules.put(module.name, module));
-        List.copyOf(modules.values()).forEach(module -> module.destinationModules.stream()
-                .map(destination -> modules.compute(destination, (k, v) -> v != null ? v : new OutputModule(k)))
-                .filter(ConjunctionModule.class::isInstance)
-                .map(ConjunctionModule.class::cast)
-                .forEach(destination -> destination.addInput(module)));
+        for (Module module : List.copyOf(modules.values())) {
+            for (String destination : module.destinationModules) {
+                Module destinationModule = modules.compute(destination, (k, v) -> v != null ? v : new OutputModule(k));
+                if (destinationModule instanceof ConjunctionModule conjunction) conjunction.incrementInputs();
+            }
+        }
         return modules;
     }
 
@@ -171,7 +174,7 @@ public class Day20Solution extends Solution {
     private static class ConjunctionModule extends Module {
 
         private final Map<Module, Boolean> memory = new HashMap<>();
-        private final Set<Module> inputs = new HashSet<>();
+        private int inputs = 0;
         private Runnable onTrigger = null;
 
         private ConjunctionModule(String name, List<String> destinationModules) {
@@ -181,14 +184,14 @@ public class Day20Solution extends Solution {
         @Override
         protected Pulse receive(Pulse pulse, Module destination) {
             memory.put(pulse.sender, pulse.high);
-            boolean newPulse = !pulse.high || memory.values().stream().filter(bool -> bool).count() < inputs.size();
+            boolean newPulse = !pulse.high || memory.values().stream().filter(bool -> bool).count() < inputs;
             if (onTrigger != null && newPulse)
                 onTrigger.run();
             return new Pulse(this, destination, newPulse);
         }
 
-        public void addInput(Module input) {
-            inputs.add(input);
+        public void incrementInputs() {
+            inputs++;
         }
 
         public void onTrigger(Runnable runnable) {
